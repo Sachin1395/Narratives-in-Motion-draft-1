@@ -13,6 +13,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import smtplib
 from email_branches import send_mail
+
+from Text_correction import  correct,generate
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
@@ -64,8 +66,8 @@ class BlogPost(db.Model):
     date: Mapped[str] = mapped_column(String(250), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
-    # branches : Mapped[str] = mapped_column(String(250), nullable=True)
-    # branch_gen_count : Mapped[int] = mapped_column(Integer ,default=0)
+    branches : Mapped[str] = mapped_column(String(250), nullable=True)
+    branch_gen_count : Mapped[int] = mapped_column(Integer ,default=0)
     # Parent relationship to the comments
     comments = relationship("Comment", back_populates="parent_post")
 
@@ -211,7 +213,8 @@ def show_post(post_id):
                 db.session.commit()
                 requested_post.branch_gen_count+=1
                 #send mail with percentage likelyness;
-                send_mail(toadd="sachin.a2023@vitstudent.ac.in", content="twist turn end")
+                branches = generate(requested_post.comments,requested_post.body)
+                send_mail(toadd="sachin.a2023@vitstudent.ac.in", content=branches)
     return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
 
 
@@ -227,10 +230,12 @@ def show_post(post_id):
 def add_new_post():
     form = CreatePostForm()
     if form.validate_on_submit():
+        corrected_content = correct(form.body.data)
+
         new_post = BlogPost(
             title=form.title.data,
             subtitle=form.subtitle.data,
-            body=form.body.data,
+            body=corrected_content,
             img_url=form.img_url.data,
             author=current_user,
             date=date.today().strftime("%B %d, %Y")
