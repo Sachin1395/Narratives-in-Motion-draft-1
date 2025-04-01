@@ -205,15 +205,19 @@ def show_post(post_id):
         )
         db.session.add(new_comment)
         db.session.commit()
+
+        requested_comment = db.get_or_404(Comment, post_id)
         comment_count = len(requested_post.comments) if requested_post.comments else 0
 
         if comment_count >= 10:  # Set a threshold for branch generation
-            if requested_post.branch_gen_count < comment_count//10:
-                requested_post.branches = "twist turn end"
+            print(requested_post.branch_gen_count, " ", comment_count)
+            if comment_count %10 ==0:
+                print(requested_post.branch_gen_count," ",comment_count)
                 db.session.commit()
                 requested_post.branch_gen_count+=1
                 #send mail with percentage likelyness;
-                branches = generate(requested_post.comments,requested_post.body)
+                branches = generate(requested_comment,requested_post.body)
+                requested_post.branches = branches
                 send_mail(toadd="sachin.a2023@vitstudent.ac.in", content=branches)
     return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
 
