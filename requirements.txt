@@ -18,7 +18,6 @@ MarkupSafe==3.0.2
 PyYAML==6.0.2
 
 SQLAlchemy==2.0.40
-
 WTForms==3.2.1
 
 Werkzeug==3.1.3
