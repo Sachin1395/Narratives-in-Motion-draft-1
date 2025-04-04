@@ -218,7 +218,9 @@ def show_post(post_id):
                 #send mail with percentage likelyness;
                 branches = generate(requested_comment,requested_post.body)
                 requested_post.branches = branches
-                send_mail(toadd="sachin.a2023@vitstudent.ac.in", content=branches)
+                requested_author =  db.get_or_404(User, requested_post.author_id)
+                print(requested_author.email)
+                send_mail(toadd=requested_author.email, content=branches)
     return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
 
 
