@@ -12,6 +12,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import smtplib
+import unicodedata
 from email_branches import send_mail
 
 from Text_correction import  correct,generate
@@ -20,7 +21,11 @@ app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///your_database.db"
-
+def unicode_to_ascii(text):
+    return ''.join(
+        c if ord(c) < 128 else unicodedata.normalize('NFKD', c).encode('ascii', 'ignore').decode('ascii')
+        for c in text
+    )
 
 # Configure Flask-Login
 login_manager = LoginManager()
@@ -220,7 +225,8 @@ def show_post(post_id):
                 requested_post.branches = branches
                 requested_author =  db.get_or_404(User, requested_post.author_id)
                 print(requested_author.email)
-                send_mail(toadd=requested_author.email, content=branches)
+                msg = unicode_to_ascii(branches)
+                send_mail(toadd=requested_author.email, content=msg)
     return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
 
 
